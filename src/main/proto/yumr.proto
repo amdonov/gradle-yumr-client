@@ -1,0 +1,80 @@
+syntax = "proto3";
+package api;
+
+service Yumr {
+  rpc SyncRepo (SyncRequest) returns (stream SyncResponse) {}
+  rpc CreateRepo (RepoRequest) returns (EmptyResponse) {}
+  rpc RemoveRepo (RepoRequest) returns (EmptyResponse) {}
+  rpc ListRepos (ReposRequest) returns (ReposResponse) {}
+  rpc AddPackage (stream FileMessage) returns (EmptyResponse) {}
+  rpc RemovePackage (stream PackageRemoveRequest) returns (EmptyResponse) {}
+  rpc GetPackage (PackageGetRequest) returns (stream FileMessage) {}
+  rpc ListPackages (PackagesRequest) returns (stream PackagesResponse) {}
+}
+
+message SyncRequest {
+ string remote = 1;
+ bool all = 2;
+ bool overwrite = 3;
+ repeated string repos = 4;
+}
+
+message SyncResponse {
+  string message = 1;
+}
+
+message RepoRequest {
+  string name = 1;
+}
+
+message ReposRequest {
+  repeated string name = 1;
+}
+
+message EmptyResponse {
+}
+
+message ReposResponse {
+  repeated string names = 1;
+}
+
+message FileMessage {
+  oneof msg {
+    OpenMessage openMsg = 1;
+    DataMessage dataMsg = 2;
+    CloseMessage closeMsg = 3;
+  }
+}
+
+message OpenMessage {
+  string repo = 1;
+  string package = 2;
+  int64 size = 3;
+}
+
+message CloseMessage {
+}
+
+message DataMessage {
+  bytes content = 1;
+}
+
+message PackageGetRequest {
+  string repo = 1;
+  string package = 2;
+}
+
+message PackageRemoveRequest {
+  string repo = 1;
+  string package = 2;
+}
+
+message PackagesRequest {
+  string repo = 1;
+  bool wantHash = 2; 
+}
+
+message PackagesResponse {
+  string name = 1;
+  string hash = 2;
+}
