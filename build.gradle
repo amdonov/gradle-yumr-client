@@ -27,6 +27,20 @@ protobuf {
 version = "0.1.0"
 group = "com.github.amdonov.gradle"
 
+pluginBundle {
+    website = 'https://github.com/amdonov/gradle-yumr-client'
+    vcsUrl = 'https://github.com/amdonov/gradle-yumr-client'
+    description = 'Publishes artifacts to YUMR server via GRPC'
+    tags = ['rpm', 'yumr']
+
+    plugins {
+        init {
+            id = 'amdonov.yumr'
+            displayName = 'Gradle Init plugin'
+        }
+    }
+}
+
 dependencies {
     compile gradleApi()
     compile localGroovy()
