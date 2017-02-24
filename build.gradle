@@ -24,7 +24,7 @@ protobuf {
     }
 }
 
-version = "0.1.0"
+version = "0.1.1"
 group = "com.github.amdonov.gradle"
 
 pluginBundle {
@@ -36,7 +36,7 @@ pluginBundle {
     plugins {
         init {
             id = 'amdonov.yumr'
-            displayName = 'Gradle Init plugin'
+            displayName = 'Gradle YUMR plugin'
         }
     }
 }

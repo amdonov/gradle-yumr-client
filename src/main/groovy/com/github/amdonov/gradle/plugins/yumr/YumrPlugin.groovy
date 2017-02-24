@@ -43,6 +43,8 @@ class YumrPlugin implements Plugin<Project> {
                 }
                 // Close the package
                 rpms.onNext(YumrOuterClass.FileMessage.newBuilder().setCloseMsg(YumrOuterClass.CloseMessage.getDefaultInstance()).build())
+                rpms.onCompleted();
+                channel.shutdown();
             }
         }
     }
