@@ -12,6 +12,9 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 /**
  * Created by aarondonovan on 2/21/17.
  */
@@ -29,7 +32,24 @@ class YumrPlugin implements Plugin<Project> {
                 File file = new File("${project.yumr.rpm}")
                 YumrOuterClass.OpenMessage openMessage = YumrOuterClass.OpenMessage.newBuilder().setPackage(file.getName()).
                         setRepo("${project.yumr.repo}").setSize(file.length()).build()
-                StreamObserver<YumrOuterClass.FileMessage> rpms = stub.addPackage(null)
+                final CountDownLatch finishLatch = new CountDownLatch(1);
+                StreamObserver<YumrOuterClass.FileMessage> rpms = stub.addPackage(new StreamObserver<YumrOuterClass.EmptyResponse>() {
+                    @Override
+                    void onNext(YumrOuterClass.EmptyResponse value) {
+
+                    }
+
+                    @Override
+                    void onError(Throwable t) {
+                        t.printStackTrace(System.err)
+                        finishLatch.countDown()
+                    }
+
+                    @Override
+                    void onCompleted() {
+                        finishLatch.countDown()
+                    }
+                })
                 // Open the package
                 rpms.onNext(YumrOuterClass.FileMessage.newBuilder().setOpenMsg(openMessage).build())
                 // Send the file in 2k chunks
@@ -43,8 +63,11 @@ class YumrPlugin implements Plugin<Project> {
                 }
                 // Close the package
                 rpms.onNext(YumrOuterClass.FileMessage.newBuilder().setCloseMsg(YumrOuterClass.CloseMessage.getDefaultInstance()).build())
-                rpms.onCompleted();
-                channel.shutdown();
+                rpms.onCompleted()
+                if (!finishLatch.await(1, TimeUnit.MINUTES)) {
+                    warning("yumr publish can not finish within 1 minutes");
+                }
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
             }
         }
     }
